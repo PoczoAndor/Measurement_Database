@@ -12,12 +12,12 @@ namespace Masuratori
 {
     class sql_database_operation
     {
-        public static string LoadConnectionString(string id = "Default")
+        public static string LoadConnectionString(string id = "Default")//create a connectionstring to sqlite database
         {
             return ConfigurationManager.ConnectionStrings[id].ConnectionString;
 
         }
-        public static void Add_fise(fise_class_table first)
+        public static void Add_fise(fise_class_table first)//import data into first sqlite table containing information about the pdf file
         {
             using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString("Default")))
             {
@@ -25,7 +25,7 @@ namespace Masuratori
                 
             }
         }
-        public static void Add_masuratori(masuratori_table first)
+        public static void Add_masuratori(masuratori_table first)//import data into the second table containing all the measurements
         {
             using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString("Default")))
             {

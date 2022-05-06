@@ -14,7 +14,7 @@ namespace Masuratori
     class Import
     {
 
-        public static void importBackgroundWork()
+        public static void importBackgroundWork()//importing from text file and sorting trough the data without a set time interval
         {
 
             string[] filesConverted = Directory.GetFiles(@".\DataConverted", "*.txt", SearchOption.AllDirectories);
@@ -146,7 +146,7 @@ namespace Masuratori
                             counterZeiss++;
                         }
                     }
-                    else //if converted text file is not of type ziess look for info on the part measured
+                    else //if measurement report is not of type ziess then sort it acording to type pc dmis
                     {
 
                         if (readText[3].Contains("Matrita:"))
@@ -325,7 +325,7 @@ namespace Masuratori
                         }
                     }
                 }
-                catch (System.IndexOutOfRangeException error)
+                catch (System.IndexOutOfRangeException error)//if it cannot be imported then write in a text file where it failed
                 {
 
                     string pathError = (@".\DataNotConverted.txt");
@@ -344,12 +344,12 @@ namespace Masuratori
                 numberOfFilesDone++;
                 double progress = (double)numberOfFilesDone / (double)numberOfFiles;
                 double progressDone = (double)progress * 100;
-                Form1.backgroundworkerImportInstance.ReportProgress(Convert.ToInt32(progressDone));
+                Form1.backgroundworkerImportInstance.ReportProgress(Convert.ToInt32(progressDone));//progresbbar on from 1
 
             }
 
         }
-        public static void importBackgroundWork_Watcher()
+        public static void importBackgroundWork_Watcher()//do importing automaticaly at a set time interval
         {
 
             string[] filesConverted = Directory.GetFiles(@".\DataConvertedWatch", "*.txt", SearchOption.AllDirectories);
@@ -663,7 +663,7 @@ namespace Masuratori
                 catch (System.IndexOutOfRangeException error)
                 {
 
-                    string pathError = (@".\DataNotConverted.txt");
+                    string pathError = (@".\DataNotConverted.txt");//if you didnt manage to import write it in a text file
                     using (var TextFile = new StreamWriter(pathError, true))
                     {
                         string date = DateTime.UtcNow.ToString("MM-dd-yyyy");

@@ -18,12 +18,12 @@ namespace Masuratori
 {
     class convertPDF
     {
-        private static string pathPdf(string a)
+        private static string pathPdf(string a)//path of the pdf measurements
         {
             return a;
             
         }
-        public static void watcherPathPdfConvert()
+        public static void watcherPathPdfConvert()//convert the pdf documents to text at set time interval
         {
             //string[] readText = File.ReadAllLines(@".\Data_compared.txt");
             string[] files = File.ReadAllLines(@".\Data_compared.txt");
@@ -32,24 +32,17 @@ namespace Masuratori
             int numberOfLoops = 0;
 
 
-            while (numberoOfFiles != numberOfLoops)
+            while (numberoOfFiles != numberOfLoops)//search the folder for all the pdf documents
 
             {
                 
                 var info = new FileInfo(files[numberOfLoops]);
-                using (var pdf = PdfDocument.Open(files[numberOfLoops]))
+                using (var pdf = PdfDocument.Open(files[numberOfLoops]))//open every single pdf document
                 {
 
-                    foreach (var page in pdf.GetPages())
+                    foreach (var page in pdf.GetPages())//convert the pdf document into textfiles
                     {
-                        // Either extract based on order in the underlying document with newlines and spaces.
                         var text = ContentOrderTextExtractor.GetText(page);
-
-                        // Or based on grouping letters into words.
-                        // var otherText = string.Join(" ", page.GetWords());
-
-                        // Or the raw text of the page's content stream.
-                        //var text = page.Text;
                         string fileReper = info.Directory.Name.ToString();
                         string fileDate = info.LastWriteTime.ToString();
                         string fileName = info.Name.ToString();
@@ -57,17 +50,17 @@ namespace Masuratori
                         string fileNameCombined = System.IO.Path.Combine(@".\DataConvertedWatch", fileName + ".txt");
                         using (var TextFile = new StreamWriter(fileNameCombined, true))
                         {
-                            TextFile.WriteLine("!" + fileReper);
-                            TextFile.WriteLine("!" + fileDate);
-                            TextFile.WriteLine("!" + fileName);
-                            TextFile.WriteLine(text);
+                            TextFile.WriteLine("!" + fileReper);//get the reper
+                            TextFile.WriteLine("!" + fileDate);//get the date
+                            TextFile.WriteLine("!" + fileName);//get the name of the pdf
+                            TextFile.WriteLine(text);//write the contents of the pdf
                             TextFile.Close();
 
                         }
                     }
 
                 }
-                string importedText = (@".\Data_Converted.txt");
+                string importedText = (@".\Data_Converted.txt");//write in a text what has been converted
                 using (var TextFile = new StreamWriter(importedText, true))
                 {
                     string imported = files[numberOfLoops];
@@ -86,14 +79,10 @@ namespace Masuratori
 
                 }
                 numberOfLoops++;
-                //double progress = (double)numberOfLoops / (double)numberoOfFiles;
-                //double progressDone = (double)progress * 100;
-                //Form1.backgroundworkerConvertInstance.ReportProgress(Convert.ToInt32(progressDone));
-
             }
         }
 
-        public static void pathPdfConvert(string path )
+        public static void pathPdfConvert(string path )//converting pdf documents to text but without time interval only once
         {
             
             string[] files = Directory.GetFiles(pathPdf(path), "*.pdf", SearchOption.AllDirectories);
@@ -110,14 +99,7 @@ namespace Masuratori
 
                     foreach (var page in pdf.GetPages())
                     {
-                        // Either extract based on order in the underlying document with newlines and spaces.
                         var text = ContentOrderTextExtractor.GetText(page);
-
-                        // Or based on grouping letters into words.
-                        // var otherText = string.Join(" ", page.GetWords());
-
-                        // Or the raw text of the page's content stream.
-                        //var text = page.Text;
                         string fileReper = info.Directory.Name.ToString();
                         string fileDate = info.LastWriteTime.ToString();
                         string fileName = info.Name.ToString();

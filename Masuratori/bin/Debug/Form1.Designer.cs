@@ -38,7 +38,7 @@ namespace Masuratori
             this.textBox_data = new System.Windows.Forms.TextBox();
             this.tabControls = new System.Windows.Forms.TabControl();
             this.db_controls = new System.Windows.Forms.TabPage();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox_watcher = new System.Windows.Forms.TextBox();
             this.watcher = new System.Windows.Forms.Button();
             this.tab_data = new System.Windows.Forms.TabPage();
             this.label7 = new System.Windows.Forms.Label();
@@ -148,7 +148,7 @@ namespace Masuratori
             // 
             // db_controls
             // 
-            this.db_controls.Controls.Add(this.textBox1);
+            this.db_controls.Controls.Add(this.textBox_watcher);
             this.db_controls.Controls.Add(this.watcher);
             this.db_controls.Controls.Add(this.dataGridViewDbControls);
             this.db_controls.Controls.Add(this.import);
@@ -162,12 +162,12 @@ namespace Masuratori
             this.db_controls.Text = "DB_Controls";
             this.db_controls.UseVisualStyleBackColor = true;
             // 
-            // textBox1
+            // textBox_watcher
             // 
-            this.textBox1.Location = new System.Drawing.Point(345, 7);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
-            this.textBox1.TabIndex = 20;
+            this.textBox_watcher.Location = new System.Drawing.Point(345, 7);
+            this.textBox_watcher.Name = "textBox_watcher";
+            this.textBox_watcher.Size = new System.Drawing.Size(100, 20);
+            this.textBox_watcher.TabIndex = 20;
             // 
             // watcher
             // 
@@ -364,7 +364,7 @@ namespace Masuratori
         private System.ComponentModel.BackgroundWorker backgroundWorker_import;
         private System.ComponentModel.BackgroundWorker backgroundWorker_convert;
         private System.ComponentModel.BackgroundWorker backgroundWorker_watch;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBox_watcher;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBox_ax;
     }

@@ -29,24 +29,24 @@ namespace Masuratori
         {
             InitializeComponent();
             instance = this;
-            progressBarInstance = progressBar1;
-            backgroundworkerImportInstance = backgroundWorker_import;
-            backgroundworkerConvertInstance = backgroundWorker_convert;
-            backgroundworkerWatchInstance = backgroundWorker_watch;
+            progressBarInstance = progressBar1;//instance for progresbar to use in other methods
+            backgroundworkerImportInstance = backgroundWorker_import;//backgroundworker for sorting and importing converted pdf measurements
+            backgroundworkerConvertInstance = backgroundWorker_convert;//backroundworker instance for converting pdf documents to text files
+            backgroundworkerWatchInstance = backgroundWorker_watch;//backgroundworker to scan folder with pdf measurements to be converted
         }
-        string StringA { get; set; }
+        string pathToBeConverted { get; set; }
         private void button1_Click(object sender, EventArgs e)//button to convert pdf to text
         {
 
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            FolderBrowserDialog fbd = new FolderBrowserDialog();//get path of folder with folder browser
             fbd.Description = "Custom Description";
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                StringA = fbd.SelectedPath;
+                pathToBeConverted = fbd.SelectedPath;
             }
             
-            backgroundWorker_convert.ProgressChanged += backgroundWorker_convert_ProgressChanged;
-            backgroundWorker_convert.DoWork += new DoWorkEventHandler(backgroundWorker_convert_DoWork);
+            backgroundWorker_convert.ProgressChanged += backgroundWorker_convert_ProgressChanged;//progressbar
+            backgroundWorker_convert.DoWork += new DoWorkEventHandler(backgroundWorker_convert_DoWork);//background event where we convert pdf to text file
 
 
             if (backgroundWorker_convert.IsBusy != true)
@@ -55,32 +55,24 @@ namespace Masuratori
 
                 backgroundWorker_convert.WorkerReportsProgress = true;
             }
-
-
-
         }
         public void backgroundWorker_convert_DoWork(object sender, DoWorkEventArgs e)
         {
 
 
-            convertPDF.pathPdfConvert(StringA);
+            convertPDF.pathPdfConvert(pathToBeConverted);//convert pdf to text
 
 
         }
         private void backgroundWorker_convert_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            progressBar1.Value = e.ProgressPercentage;
+            progressBar1.Value = e.ProgressPercentage;//increase progressbar 
         }
 
-        private void import_text_Click(object sender, EventArgs e)//importing the data to the database
+        private void import_text_Click(object sender, EventArgs e)//button for importing and sorting the data to the database from the converted text files
         {
-
-
-            //Start the asynchronous operation.
-            //backgroundWorker1.RunWorkerCompleted += backgroundWorker1_RunWorkerCompleted;
             backgroundWorker_import.ProgressChanged += backgroundWorker_import_ProgressChanged;
-            backgroundWorker_import.DoWork += new DoWorkEventHandler(backgroundWorker_import_DoWork);
-
+            backgroundWorker_import.DoWork += new DoWorkEventHandler(backgroundWorker_import_DoWork);//background event to import and sort the converted pdf text files
 
             if (backgroundWorker_import.IsBusy != true)
             {
@@ -93,7 +85,7 @@ namespace Masuratori
         }
         public void backgroundWorker_import_DoWork(object sender, DoWorkEventArgs e)
         {
-            Import.importBackgroundWork();
+            Import.importBackgroundWork();//sort text files into types of measurement and import to database
         }
         private void backgroundWorker_import_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -103,7 +95,7 @@ namespace Masuratori
 
 
 
-        private void searchButton_Click(object sender, EventArgs e)//searching button
+        private void searchButton_Click(object sender, EventArgs e)//searching button from the database into a datagridview
         {
             string reper = textBox_reper.Text;
             string data = textBox_data.Text;
@@ -113,9 +105,9 @@ namespace Masuratori
             string isOuttol = textBox_isOuttol.Text;
             if (!String.IsNullOrEmpty(data) | !String.IsNullOrEmpty(reper) | !String.IsNullOrEmpty(nume) | !String.IsNullOrEmpty(cota) | !String.IsNullOrEmpty(Nominal) | !String.IsNullOrEmpty(isOuttol))
             {
-                using (IDbConnection cnn = new SQLiteConnection(sql_database_operation.LoadConnectionString("Default")))
+                using (IDbConnection cnn = new SQLiteConnection(sql_database_operation.LoadConnectionString("Default")))//using the default connection string connect to the database and execute the sql command
                 {
-                    SQLiteDataAdapter adapter = new SQLiteDataAdapter("SELECT Numar,Reper,Data,Nume,Observatii,Fisa_id,Cota, Ax,Nominal,Meas,Tol_plus,Tol_minus,Bonus,Dev,Outtol,Directia,Is_outtol FROM fise INNER JOIN Masuratori on Masuratori.Fisa_id = Numar  WHERE fise.Data like " + "\"%" + data + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Reper like" + "\"%" + reper + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Nume like" + "\"%" + nume + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Cota like" + "\"%" + cota + "%\"" + "ESCAPE" + "\'\\'"+ "AND Masuratori.Nominal like" + "\"%" + Nominal + "%\"" + "ESCAPE" + "\'\\'" +"AND Masuratori.Is_outtol like" + "\"%" + isOuttol + "%\"", sql_database_operation.LoadConnectionString("Default"));
+                    SQLiteDataAdapter adapter = new SQLiteDataAdapter("SELECT Reper,Data,Nume,Observatii,Cota, Ax,Nominal,Meas,Tol_plus,Tol_minus,Bonus,Dev,Outtol,Directia,Is_outtol FROM fise INNER JOIN Masuratori on Masuratori.Fisa_id = Numar  WHERE fise.Data like " + "\"%" + data + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Reper like" + "\"%" + reper + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Nume like" + "\"%" + nume + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Cota like" + "\"%" + cota + "%\"" + "ESCAPE" + "\'\\'"+ "AND Masuratori.Nominal like" + "\"%" + Nominal + "%\"" + "ESCAPE" + "\'\\'" +"AND Masuratori.Is_outtol like" + "\"%" + isOuttol + "%\"", sql_database_operation.LoadConnectionString("Default"));
                     DataSet dset = new DataSet();
                     // MessageBox.Show("SELECT Numar,Reper,Data,Nume,Observatii,Fisa_id,Cota, Ax,Nominal,Meas,Tol_plus,Tol_minus,Bonus,Dev,Outtol,Directia,Is_outtol FROM fise INNER JOIN Masuratori on Masuratori.Fisa_id = Numar  WHERE fise.Data like " + "\"%" + data + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Reper like" + "\"%" + reper + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Nume like" + "\"%" + nume + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Cota like" + "\"%" + cota + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Ax like" + "\"%" + ax + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Is_outtol like" + "\"%" + isOuttol + "%\"");
                     adapter.Fill(dset, "info");
@@ -143,56 +135,48 @@ namespace Masuratori
 
         }
 
-        private void watcher_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = "Custom Description";
-            string path="";
-            if (fbd.ShowDialog() == DialogResult.OK)
+        private void watcher_Click(object sender, EventArgs e)//a button to do the converting sorting and importing into database automaticaly at a set time interval
+        { 
+            string[] pathPdf= File.ReadAllLines(@".\Path_of_measurements.txt");
+            string pathPdfMeasurements = pathPdf[0];
+            string[] files = Directory.GetFiles(pathPdfMeasurements, "*.pdf", SearchOption.AllDirectories);
+            int scanning = files.Length;
+            int scanned = 0;
+            while (scanning != scanned)
             {
-                path = fbd.SelectedPath;
+                string pathError = (@".\Data_to_be imported.txt");
+                using (var TextFile = new StreamWriter(pathError, true))
+                {
+                    string date = files[scanned];
+                    TextFile.WriteLine(date);
 
+                    TextFile.Close();
+
+                }
+                scanned++;
             }
-            
-                //MessageBox.Show(path);
-                string[] files = Directory.GetFiles(path, "*.pdf", SearchOption.AllDirectories);
-                int scanning = files.Length;
-                int scanned = 0;
-                while (scanning != scanned)
-                {
-                    string pathError = (@".\Data_to_be imported.txt");
-                    using (var TextFile = new StreamWriter(pathError, true))
-                    {
-                        string date = files[scanned];
-                        TextFile.WriteLine(date);
+            String[] linesA = File.ReadAllLines(@".\Data_to_be imported.txt");
+            String[] linesB = File.ReadAllLines(@".\Data_Converted.txt");
 
-                        TextFile.Close();
+            IEnumerable<String> onlyB = linesA.Except(linesB);
 
-                    }
-                    scanned++;
-                }
-                String[] linesA = File.ReadAllLines(@".\Data_to_be imported.txt");
-                String[] linesB = File.ReadAllLines(@".\Data_Converted.txt");
+            File.WriteAllLines(@".\Data_compared.txt", onlyB);
+            convertPDF.watcherPathPdfConvert();
 
-                IEnumerable<String> onlyB = linesA.Except(linesB);
+            File.Delete(@".\Data_to_be imported.txt");
 
-                File.WriteAllLines(@".\Data_compared.txt", onlyB);
-                convertPDF.watcherPathPdfConvert();
+            backgroundWorker_watch.DoWork += new DoWorkEventHandler(backgroundWorker_watch_DoWork);
+            backgroundWorker_watch.ProgressChanged += backgroundWorker_watch_ProgressChanged;
 
-                File.Delete(@".\Data_to_be imported.txt");
-                
-                backgroundWorker_watch.DoWork += new DoWorkEventHandler(backgroundWorker_watch_DoWork);
-                backgroundWorker_watch.ProgressChanged += backgroundWorker_watch_ProgressChanged;
+            if (backgroundWorker_watch.IsBusy != true)
+            {
+                backgroundWorker_watch.RunWorkerAsync();
 
-                if (backgroundWorker_watch.IsBusy != true)
-                {
-                    backgroundWorker_watch.RunWorkerAsync();
+                backgroundWorker_watch.WorkerReportsProgress = true;
+            }
 
-                    backgroundWorker_watch.WorkerReportsProgress = true;
-                }
 
-          
-            
+
 
 
 
@@ -201,11 +185,9 @@ namespace Masuratori
         {
             Import.importBackgroundWork_Watcher();
         }
-        //private delegate void ToDoDelegate();
+        
         private void backgroundWorker_watch_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            ////this.progressBar1.AutoInvoke(() => this.ProgressBar1.Value = start);
-            //Invoke(new ToDoDelegate(() => progressBar1.Value = e.ProgressPercentage));
             Form1.progressBarInstance.Value = e.ProgressPercentage;
         }
 
