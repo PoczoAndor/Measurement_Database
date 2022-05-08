@@ -2,19 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System;
 using System.IO;
 using System.Data.SQLite;
-using Dapper;
-using System.Configuration;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
-using System.Threading;
+using System.Timers;
 
 namespace Masuratori
 {
@@ -25,6 +17,8 @@ namespace Masuratori
         public static BackgroundWorker backgroundworkerImportInstance;
         public static BackgroundWorker backgroundworkerConvertInstance;
         public static BackgroundWorker backgroundworkerWatchInstance;
+        private System.Timers.Timer myTimer;
+
         public Form1()
         {
             InitializeComponent();
@@ -114,6 +108,17 @@ namespace Masuratori
                     dataGridView1.DataSource = dset.Tables[0];
                 }
             }
+            if (String.IsNullOrEmpty(isOuttol))
+            {
+                using (IDbConnection cnn = new SQLiteConnection(sql_database_operation.LoadConnectionString("Default")))//using the default connection string connect to the database and execute the sql command
+                {
+                    SQLiteDataAdapter adapter = new SQLiteDataAdapter("SELECT Reper,Data,Nume,Observatii,Cota, Ax,Nominal,Meas,Tol_plus,Tol_minus,Bonus,Dev,Outtol,Directia,Is_outtol FROM fise INNER JOIN Masuratori on Masuratori.Fisa_id = Numar  WHERE fise.Data like " + "\"%" + data + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Reper like" + "\"%" + reper + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Nume like" + "\"%" + nume + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Cota like" + "\"%" + cota + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Nominal like" + "\"%" + Nominal + "%\"" + "ESCAPE" + "\'\\'", sql_database_operation.LoadConnectionString("Default"));
+                    DataSet dset = new DataSet();
+                    // MessageBox.Show("SELECT Numar,Reper,Data,Nume,Observatii,Fisa_id,Cota, Ax,Nominal,Meas,Tol_plus,Tol_minus,Bonus,Dev,Outtol,Directia,Is_outtol FROM fise INNER JOIN Masuratori on Masuratori.Fisa_id = Numar  WHERE fise.Data like " + "\"%" + data + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Reper like" + "\"%" + reper + "%\"" + "ESCAPE" + "\'\\'" + "AND fise.Nume like" + "\"%" + nume + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Cota like" + "\"%" + cota + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Ax like" + "\"%" + ax + "%\"" + "ESCAPE" + "\'\\'" + "AND Masuratori.Is_outtol like" + "\"%" + isOuttol + "%\"");
+                    adapter.Fill(dset, "info");
+                    dataGridView1.DataSource = dset.Tables[0];
+                }
+            }
         }
 
 
@@ -136,8 +141,59 @@ namespace Masuratori
         }
 
         private void watcher_Click(object sender, EventArgs e)//a button to do the converting sorting and importing into database automaticaly at a set time interval
-        { 
-            string[] pathPdf= File.ReadAllLines(@".\Path_of_measurements.txt");
+        {
+            string[] pathPdf = File.ReadAllLines(@".\Path_of_measurements.txt");//text file that contains the path of the measurement pdf
+            string pathPdfMeasurements = pathPdf[0];
+            Cursor.Current = Cursors.WaitCursor;
+            string[] files = Directory.GetFiles(pathPdfMeasurements, "*.pdf", SearchOption.AllDirectories);//search for all pdf in folder
+            int scanning = files.Length;
+            int scanned = 0;
+            while (scanning != scanned)
+            {
+                string pathError = (@".\Data_to_be imported.txt");//create a list of what you have found
+                using (var TextFile = new StreamWriter(pathError, true))
+                {
+                    string date = files[scanned];
+                    TextFile.WriteLine(date);
+
+                    TextFile.Close();
+
+                }
+                scanned++;
+            }
+            String[] linesA = File.ReadAllLines(@".\Data_to_be imported.txt");//check what you have found in pdf measurement folder
+            String[] linesB = File.ReadAllLines(@".\Data_Converted.txt");//check what has been imported already
+
+            IEnumerable<String> onlyB = linesA.Except(linesB);//compare what has to be imported and what is imported already
+
+            File.WriteAllLines(@".\Data_compared.txt", onlyB);//write in a text file what is missing from the database and needs to be imported , use this file to import what is missing
+            convertPDF.watcherPathPdfConvert();//convert pdf measurements to text and save the name of the PDF file to Data converted, this is so you have a list of what has been imported in database
+
+            File.Delete(@".\Data_to_be imported.txt");//delete the compared list so that it resets each time and you dont import the same measurement more times
+            Cursor.Current = Cursors.Default;
+            backgroundWorker_watch.DoWork += new DoWorkEventHandler(backgroundWorker_watch_DoWork);//start sorting and importing the converted text files
+
+            backgroundWorker_watch.ProgressChanged += backgroundWorker_watch_ProgressChanged;
+
+            if (backgroundWorker_watch.IsBusy != true)
+            {
+                backgroundWorker_watch.RunWorkerAsync();
+
+                backgroundWorker_watch.WorkerReportsProgress = true;
+            }
+            string[] importTime = File.ReadAllLines(@".\Timpul_de_importare_in_minute.txt");//text file that contains the timer to do the sorting and import automaticaly
+            string importTimeinMinutes = importTime[0];//start a timer in which the importing is repeated at set time interval
+            int timerMinutes = Int32.Parse(importTimeinMinutes) * 60000;//timer
+            myTimer = new System.Timers.Timer();
+            myTimer.Elapsed += new ElapsedEventHandler(automaticUpdate);
+            myTimer.Interval = timerMinutes;
+            myTimer.Enabled = true;
+
+        }
+        private void automaticUpdate(object source, ElapsedEventArgs e)//this is the same but  automatic importing done using the timer
+        {
+            
+            string[] pathPdf = File.ReadAllLines(@".\Path_of_measurements.txt");
             string pathPdfMeasurements = pathPdf[0];
             string[] files = Directory.GetFiles(pathPdfMeasurements, "*.pdf", SearchOption.AllDirectories);
             int scanning = files.Length;
@@ -166,6 +222,7 @@ namespace Masuratori
             File.Delete(@".\Data_to_be imported.txt");
 
             backgroundWorker_watch.DoWork += new DoWorkEventHandler(backgroundWorker_watch_DoWork);
+
             backgroundWorker_watch.ProgressChanged += backgroundWorker_watch_ProgressChanged;
 
             if (backgroundWorker_watch.IsBusy != true)
@@ -174,21 +231,20 @@ namespace Masuratori
 
                 backgroundWorker_watch.WorkerReportsProgress = true;
             }
-
-
-
-
-
-
         }
-        public void backgroundWorker_watch_DoWork(object sender, DoWorkEventArgs e)
+        
+        public void backgroundWorker_watch_DoWork(object sender, DoWorkEventArgs e)//sorting and importing the converted measurements 
         {
             Import.importBackgroundWork_Watcher();
         }
         
-        private void backgroundWorker_watch_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorker_watch_ProgressChanged(object sender, ProgressChangedEventArgs e)//progressbar increment
         {
-            Form1.progressBarInstance.Value = e.ProgressPercentage;
+            Form1.progressBarInstance.Invoke((MethodInvoker)delegate
+            {
+                Form1.progressBarInstance.Value = e.ProgressPercentage;
+
+            });
         }
 
     }
