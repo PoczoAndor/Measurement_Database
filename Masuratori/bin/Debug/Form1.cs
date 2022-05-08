@@ -7,6 +7,9 @@ using System.Windows.Forms;
 using System.IO;
 using System.Data.SQLite;
 using System.Timers;
+using System.Reflection;
+
+
 
 namespace Masuratori
 {
@@ -27,6 +30,7 @@ namespace Masuratori
             backgroundworkerImportInstance = backgroundWorker_import;//backgroundworker for sorting and importing converted pdf measurements
             backgroundworkerConvertInstance = backgroundWorker_convert;//backroundworker instance for converting pdf documents to text files
             backgroundworkerWatchInstance = backgroundWorker_watch;//backgroundworker to scan folder with pdf measurements to be converted
+            
         }
         string pathToBeConverted { get; set; }
         private void button1_Click(object sender, EventArgs e)//button to convert pdf to text
@@ -50,13 +54,16 @@ namespace Masuratori
                 backgroundWorker_convert.WorkerReportsProgress = true;
             }
         }
+
+        static void SetDoubleBuffer(Control dataGridView1, bool DoubleBuffered)
+        {
+            typeof(Control).InvokeMember("DoubleBuffered",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                null, dataGridView1, new object[] { DoubleBuffered });
+        }
         public void backgroundWorker_convert_DoWork(object sender, DoWorkEventArgs e)
         {
-
-
             convertPDF.pathPdfConvert(pathToBeConverted);//convert pdf to text
-
-
         }
         private void backgroundWorker_convert_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -75,7 +82,6 @@ namespace Masuratori
                 backgroundWorker_import.WorkerReportsProgress = true;
             }
 
-
         }
         public void backgroundWorker_import_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -85,12 +91,9 @@ namespace Masuratori
         {
             progressBar1.Value = e.ProgressPercentage;
         }
-
-
-
-
         private void searchButton_Click(object sender, EventArgs e)//searching button from the database into a datagridview
         {
+            SetDoubleBuffer(dataGridView1,true);
             string reper = textBox_reper.Text;
             string data = textBox_data.Text;
             string nume = textBox_nume.Text;
@@ -120,8 +123,6 @@ namespace Masuratori
                 }
             }
         }
-
-
 
         private void button_save_excel_Click(object sender, EventArgs e)//save the info from datagrid to excel file
         {
@@ -155,9 +156,7 @@ namespace Masuratori
                 {
                     string date = files[scanned];
                     TextFile.WriteLine(date);
-
                     TextFile.Close();
-
                 }
                 scanned++;
             }
